@@ -1,4 +1,8 @@
 FROM node:20-alpine3.20 as build
+LABEL authors="tapnisu"
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 
 COPY . /app
 WORKDIR /app
