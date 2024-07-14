@@ -9,9 +9,10 @@ export default function Converter() {
   const [resize, setResize] = useState(true);
   const [negative, setNegative] = useState(false);
 
-  const [adaptiveEmoji, setAdaptiveEmoji] = useState<Blob | undefined>();
+  const [adaptiveEmoji, setAdaptiveEmoji] = useState<Blob>();
 
   const [busy, setBusy] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>();
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
@@ -24,70 +25,82 @@ export default function Converter() {
       .convert(file, resize, negative)
       .then((res) => {
         if (!res || (res as APIError).status)
-          return alert((res as APIError).message);
+          return setErrorMessage((res as APIError).message);
 
         setAdaptiveEmoji(res as Blob);
       })
-      .catch((err) => alert(err));
+      .catch((err) => setErrorMessage(err));
 
     setBusy(false);
   };
 
   return (
-    <article>
-      <form onSubmit={handleSubmit}>
-        <fieldset>
-          <label>
-            Image
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={(e) =>
-                setFile(e.target.files ? e.target.files[0] : undefined)
-              }
-              required
-            />
-          </label>
+    <>
+      <dialog open={errorMessage != undefined}>
+        <article>
+          <h2>Error happened!</h2>
+          <p>{errorMessage}</p>
+          <footer>
+            <button onClick={() => setErrorMessage(undefined)}>OK</button>
+          </footer>
+        </article>
+      </dialog>
 
-          <label>Options</label>
+      <article>
+        <form onSubmit={handleSubmit}>
+          <fieldset>
+            <label>
+              Image
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={(e) =>
+                  setFile(e.target.files ? e.target.files[0] : undefined)
+                }
+                required
+              />
+            </label>
 
-          <label>
-            <input
-              type="checkbox"
-              onChange={() => setResize(!resize)}
-              defaultChecked={true}
-            />
-            Resize
-          </label>
+            <label>Options</label>
 
-          <label>
-            <input type="checkbox" onChange={() => setNegative(!negative)} />
-            Negative
-          </label>
-        </fieldset>
+            <label>
+              <input
+                type="checkbox"
+                onChange={() => setResize(!resize)}
+                defaultChecked={true}
+              />
+              Resize
+            </label>
 
-        <button type="submit" aria-busy={busy}>
-          Convert
-        </button>
+            <label>
+              <input type="checkbox" onChange={() => setNegative(!negative)} />
+              Negative
+            </label>
+          </fieldset>
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          {adaptiveEmoji != undefined ? (
-            <img
-              src={URL.createObjectURL(adaptiveEmoji)}
-              alt="Adaptive emoji"
-            />
-          ) : (
-            <></>
-          )}
-        </div>
-      </form>
-    </article>
+          <button type="submit" aria-busy={busy}>
+            Convert
+          </button>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            {adaptiveEmoji != undefined ? (
+              <img
+                src={URL.createObjectURL(adaptiveEmoji)}
+                alt="Adaptive emoji"
+              />
+            ) : (
+              <></>
+            )}
+          </div>
+        </form>
+      </article>
+    </>
   );
 }
